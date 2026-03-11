@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: iaresume-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: POSTGRES_URL
+        value: ${POSTGRES_URL}
+      - key: JWT_SECRET
+        value: ${JWT_SECRET}
+      - key: GEMINI_API_KEY
+        value: ${GEMINI_API_KEY}

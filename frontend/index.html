@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Study Summarizer</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    section { margin-bottom: 2rem; }
+    textarea { width: 100%; height: 100px; }
+  </style>
+</head>
+<body>
+  <h1>AI Study Summarizer</h1>
+
+  <section id="auth">
+    <h2>Register / Login</h2>
+    <input type="email" id="email" placeholder="Email" /> <br /><br />
+    <input type="password" id="password" placeholder="Password" /> <br /><br />
+    <button id="registerBtn">Register</button>
+    <button id="loginBtn">Login</button>
+    <p id="authMsg"></p>
+  </section>
+
+  <section id="summarizeSection" style="display:none;">
+    <h2>Summarize Text</h2>
+    <textarea id="text"></textarea><br />
+    <button id="summarizeBtn">Summarize</button>
+    <pre id="summaryOutput"></pre>
+    <h3>Your Summaries</h3>
+    <ul id="summariesList"></ul>
+  </section>
+
+  <script>
+const api = 'http://localhost:5000/api';
+    let token = '';
+
+    document.getElementById('registerBtn').onclick = async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const res = await fetch(api + '/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      document.getElementById('authMsg').innerText = JSON.stringify(data);
+    };
+
+    document.getElementById('loginBtn').onclick = async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const res = await fetch(api + '/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (data.token) {
+        token = data.token;
+        document.getElementById('authMsg').innerText = 'Logged in';
+        document.getElementById('summarizeSection').style.display = 'block';
+        loadSummaries();
+      } else {
+        document.getElementById('authMsg').innerText = JSON.stringify(data);
+      }
+    };
+
+    document.getElementById('summarizeBtn').onclick = async () => {
+      const text = document.getElementById('text').value;
+      const res = await fetch(api + '/summarize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + token,
+        },
+        body: JSON.stringify({ text }),
+      });
+      const data = await res.json();
+      document.getElementById('summaryOutput').innerText = data.summary || JSON.stringify(data);
+      loadSummaries();
+    };
+
+    async function loadSummaries() {
+      const res = await fetch(api + '/summaries', {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      const data = await res.json();
+      const list = document.getElementById('summariesList');
+      list.innerHTML = '';
+      (data.summaries || []).forEach(s => {
+        const li = document.createElement('li');
+        li.innerText = `${new Date(s.createdAt).toLocaleString()}: ${s.summaryText}`;
+        list.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
