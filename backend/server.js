@@ -22,6 +22,9 @@ app.use('/api', require('./routes/summaries'));
 app.get("/", (req, res) => {
   res.send("API running");
 });
+app.get("/api/test", (req, res) => {
+  res.json({ message: "API works" });
+});
 
 const PORT = process.env.PORT || 5000;
 
